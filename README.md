@@ -233,3 +233,273 @@ renderProducts();
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My E-Commerce Store</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#f4f4f4;
+}
+
+header{
+    background:#111;
+    color:#fff;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+header h1{
+    margin:0;
+}
+
+.cart-btn{
+    cursor:pointer;
+    background:#28a745;
+    padding:8px 12px;
+    border-radius:5px;
+}
+
+.container{
+    padding:20px;
+}
+
+.products{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:20px;
+}
+
+.product{
+    background:#fff;
+    padding:15px;
+    border-radius:8px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    text-align:center;
+}
+
+.product img{
+    width:100%;
+    height:150px;
+    object-fit:cover;
+    border-radius:5px;
+}
+
+.product button{
+    background:#28a745;
+    border:none;
+    color:white;
+    padding:8px;
+    width:100%;
+    cursor:pointer;
+    border-radius:4px;
+}
+
+.cart-section{
+    display:none;
+    background:#fff;
+    padding:20px;
+    border-radius:8px;
+}
+
+.cart-section ul{
+    list-style:none;
+    padding:0;
+}
+
+.cart-section li{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+}
+
+.remove-btn{
+    background:red;
+    border:none;
+    color:white;
+    padding:3px 8px;
+    cursor:pointer;
+}
+
+.checkout input{
+    width:100%;
+    padding:8px;
+    margin-bottom:10px;
+}
+
+.checkout button{
+    background:#007bff;
+    border:none;
+    color:white;
+    padding:10px;
+    width:100%;
+    cursor:pointer;
+}
+
+.back-btn{
+    background:#333;
+    color:white;
+    padding:6px 10px;
+    cursor:pointer;
+    border:none;
+    margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>My Online Store</h1>
+    <div class="cart-btn" onclick="toggleCart()">
+        🛒 Cart (<span id="cart-count">0</span>)
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- PRODUCTS -->
+    <div id="product-section">
+        <div class="products" id="product-list"></div>
+    </div>
+
+    <!-- CART SECTION -->
+    <div class="cart-section" id="cart-section">
+        <button class="back-btn" onclick="toggleCart()">⬅ Back to Shop</button>
+        <h2>Your Cart</h2>
+        <ul id="cart-items"></ul>
+        <h3>Total: $<span id="total">0</span></h3>
+
+        <div class="checkout">
+            <h3>Checkout</h3>
+            <input type="text" id="name" placeholder="Full Name">
+            <input type="email" id="email" placeholder="Email">
+            <button onclick="checkout()">Place Order</button>
+        </div>
+
+        <hr>
+        <h3>My Purchases</h3>
+        <ul id="purchase-history"></ul>
+    </div>
+
+</div>
+
+<script>
+const products = [
+    { id:1, name:"T-Shirt", price:20, image:"https://via.placeholder.com/200" },
+    { id:2, name:"Shoes", price:50, image:"https://via.placeholder.com/200" },
+    { id:3, name:"Watch", price:80, image:"https://via.placeholder.com/200" },
+    { id:4, name:"Backpack", price:35, image:"https://via.placeholder.com/200" }
+];
+
+let cart = [];
+let purchases = [];
+
+const productList = document.getElementById("product-list");
+const cartItems = document.getElementById("cart-items");
+const totalEl = document.getElementById("total");
+const cartCount = document.getElementById("cart-count");
+const cartSection = document.getElementById("cart-section");
+const productSection = document.getElementById("product-section");
+const purchaseHistory = document.getElementById("purchase-history");
+
+function renderProducts(){
+    products.forEach(product=>{
+        const div=document.createElement("div");
+        div.classList.add("product");
+        div.innerHTML=`
+            <img src="${product.image}">
+            <h3>${product.name}</h3>
+            <p>$${product.price}</p>
+            <button onclick="addToCart(${product.id})">Add to Cart</button>
+        `;
+        productList.appendChild(div);
+    });
+}
+
+function toggleCart(){
+    if(cartSection.style.display==="block"){
+        cartSection.style.display="none";
+        productSection.style.display="block";
+    } else {
+        cartSection.style.display="block";
+        productSection.style.display="none";
+    }
+}
+
+function addToCart(id){
+    const product=products.find(p=>p.id===id);
+    cart.push(product);
+    updateCart();
+}
+
+function removeFromCart(index){
+    cart.splice(index,1);
+    updateCart();
+}
+
+function updateCart(){
+    cartItems.innerHTML="";
+    let total=0;
+
+    cart.forEach((item,index)=>{
+        total+=item.price;
+        const li=document.createElement("li");
+        li.innerHTML=`
+            ${item.name} - $${item.price}
+            <button class="remove-btn" onclick="removeFromCart(${index})">X</button>
+        `;
+        cartItems.appendChild(li);
+    });
+
+    totalEl.textContent=total;
+    cartCount.textContent=cart.length;
+}
+
+function checkout(){
+    const name=document.getElementById("name").value;
+    const email=document.getElementById("email").value;
+
+    if(!name || !email){
+        alert("Please fill all fields.");
+        return;
+    }
+
+    if(cart.length===0){
+        alert("Your cart is empty.");
+        return;
+    }
+
+    purchases.push(...cart);
+    renderPurchases();
+
+    alert("Thank you "+name+"! Your order has been placed.");
+
+    cart=[];
+    updateCart();
+
+    document.getElementById("name").value="";
+    document.getElementById("email").value="";
+}
+
+function renderPurchases(){
+    purchaseHistory.innerHTML="";
+    purchases.forEach(item=>{
+        const li=document.createElement("li");
+        li.textContent=item.name+" - $"+item.price;
+        purchaseHistory.appendChild(li);
+    });
+}
+
+renderProducts();
+</script>
+
+</body>
+</html>
